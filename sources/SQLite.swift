@@ -157,8 +157,8 @@ class SwiftSQLite {
 
       print("PreSub: \(sql)")
 
-      var index = sql.endIndex.advancedBy(-1)
-      var newSQL = sql.substringToIndex(index)
+      let range = sql.endIndex.advancedBy(-1)..<sql.endIndex
+      var newSQL = sql.removeRange(range)
 
       print("PostSub: \(newSQL)")
 
@@ -191,11 +191,11 @@ class SwiftSQLite {
   // Execute
   func execute(sql:String) -> Bool {
     // Make sure there is a db set
-    guard self.database.characters.count > 0 else { return false }
+    guard self.dbName.characters.count > 0 else { return false }
 
     // Errors
     var errorPointer:UnsafeMutablePointer<()> = nil
-    var error:String                = ""
+    var error:String = ""
 
     // Connect
     var dbPointer:COpaquePointer = nil
@@ -222,7 +222,7 @@ class SwiftSQLite {
   }
 
   // Result
-  func setResult(object:COpaquePointer, argc:Int32, argv:AutoreleasingUnsafeMutablePointer<CChar>, column:AutoreleasingUnsafeMutablePointer<CChar>) -> Int32 {
+  func setResult(object:COpaquePointer, argc:Int32, argv:UnsafeMutablePointer<CChar>, column:UnsafeMutablePointer<CChar>) -> Int32 {
     var result:[String:String] = [:]
     for index in 0...(argv.count - 1) {
       result[column[index]] = argv[index] ? argv[index] : "NULL"

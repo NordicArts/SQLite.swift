@@ -4,6 +4,7 @@ class SwiftSQLite {
   var dbName:String = ""
   var tableName:String = ""
   var columns:[String] = []
+  var results:[String:String] = [:]
 
   func setDb(database:String) -> Void {
     self.dbName = database + ".db"
@@ -56,7 +57,7 @@ class SwiftSQLite {
   func addChar(name:String, nullable:Bool) -> Void {
     return addChar(name, length: 100, nullable: nullable)
   }
-  func addChar(name:String, nullable:Bool, length:Int) {
+  func addChar(name:String, length:Int, nullable:Bool) {
     var column:String = ""
 
     if nullable {
@@ -137,8 +138,8 @@ class SwiftSQLite {
 
   // Add Column
   func addColumn(column:String) -> Void {
-    guard self.table.characters.count > 0 else { return }
-    guard self.database.characters.count > 0 else { return }
+    guard self.tableName.characters.count > 0 else { return }
+    guard self.dbName.characters.count > 0 else { return }
 
     self.columns.append(column)
 
@@ -147,15 +148,19 @@ class SwiftSQLite {
 
   // Create Table
   func createTable() -> Bool {
-    if self.columns.size >= 1 {
-      var sql:String = "CREATE TABLE IF NOT EXISTS \(self.table) ("
+    if self.columns.count >= 1 {
+      var sql:String = "CREATE TABLE IF NOT EXISTS \(self.tableName) ("
 
       for column in self.columns {
         sql += "\(column),"
       }
 
-      var index = sql.endIndex.advanceBy(-1)
+      print("PreSub: \(sql)")
+
+      var index = sql.endIndex.advancedBy(-1)
       var newSQL = sql.substringToIndex(index)
+
+      print("PostSub: \(newSQL)")
 
       return createTable(newSQL)
     }
@@ -189,13 +194,13 @@ class SwiftSQLite {
     guard self.database.characters.count > 0 else { return false }
 
     // Errors
-    var errorPointer:COpaquePointer = nil
+    var errorPointer:UnsafeMutablePointer<()> = nil
     var error:String                = ""
 
     // Connect
     var dbPointer:COpaquePointer = nil
     var iConnection:Int32
-    iConnection = sqlite3_open(self.database, &dbPointer)
+    iConnection = sqlite3_open(self.dbName, &dbPointer)
     if iConnection != 0 {
       print("Error: \(sqlite3_errmsg(dbPointer))")
     }
@@ -214,5 +219,19 @@ class SwiftSQLite {
     sqlite3_close(dbPointer)
 
     return true
+  }
+
+  // Result
+  func setResult(object:COpaquePointer, argc:Int32, argv:AutoreleasingUnsafeMutablePointer<CChar>, column:AutoreleasingUnsafeMutablePointer<CChar>) -> Int32 {
+    var result:[String:String] = [:]
+    for index in 0...(argv.count - 1) {
+      result[column[index]] = argv[index] ? argv[index] : "NULL"
+    }
+
+    if result.count > 0 {
+      self.results = result
+    }
+
+    return 0
   }
 }

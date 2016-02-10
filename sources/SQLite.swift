@@ -194,7 +194,7 @@ class SwiftSQLite {
     guard self.dbName.characters.count > 0 else { return false }
 
     // Errors
-    var errorPointer:UnsafeMutablePointer<()> = nil
+    var errorPointer:UnsafeMutablePointer<Int8> = nil
     var error:String = ""
 
     // Connect
@@ -224,6 +224,7 @@ class SwiftSQLite {
   // Result
   func setResult(object:UnsafeMutablePointer<Void>, argc:Int32, argv:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>, column:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>) -> Int32 {
     var result:[String:String] = [:]
+    /**
     for index in 0...(argv.count - 1) {
       result[column[index]] = argv[index] ? argv[index] : "NULL"
     }
@@ -231,6 +232,7 @@ class SwiftSQLite {
     if result.count > 0 {
       self.results = result
     }
+    */
 
     return 0
   }

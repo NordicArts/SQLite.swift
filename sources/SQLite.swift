@@ -222,7 +222,7 @@ class SwiftSQLite {
   }
 
   // Result
-  func setResult(object:COpaquePointer, argc:Int32, argv:UnsafeMutablePointer<CChar>, column:UnsafeMutablePointer<CChar>) -> Int32 {
+  func setResult(object:UnsafeMutablePointer<Void>, argc:Int32, argv:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>, column:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>) -> Int32 {
     var result:[String:String] = [:]
     for index in 0...(argv.count - 1) {
       result[column[index]] = argv[index] ? argv[index] : "NULL"

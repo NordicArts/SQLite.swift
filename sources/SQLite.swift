@@ -158,11 +158,11 @@ class SwiftSQLite {
       print("PreSub: \(sql)")
 
       let range = sql.endIndex.advancedBy(-1)..<sql.endIndex
-      var newSQL = sql.removeRange(range)
+      sql.removeRange(range)
 
-      print("PostSub: \(newSQL)")
+      print("PostSub: \(sql)")
 
-      return createTable(newSQL)
+      return createTable(sql)
     }
 
     return false

@@ -3,6 +3,7 @@ import SQLite
 class SwiftSQLite {
   var dbName:String = ""
   var tableName:String = ""
+  var columns:[String] = []
 
   func setDb(database:String) -> Void {
     self.dbName = database + ".db"
@@ -91,6 +92,22 @@ class SwiftSQLite {
     var column:String = ""
 
     if nullable {
+      column = "\(name) REAL NULL"
+    } else {
+      column = "\(name) REAL NOT NULL"
+    }
+
+    return addColumn(column)
+  }
+
+  // Blob
+  func addBlob(name:String) -> Void {
+    return addBlob(name, nullable: false)
+  }
+  func addBlob(name:String, nullable:Bool) -> Void {
+    var column:String = ""
+
+    if nullable {
       column = "\(name) BLOB NULL"
     } else {
       column = "\(name) BLOB NOT NULL"
@@ -99,17 +116,103 @@ class SwiftSQLite {
     return addColumn(column)
   }
 
-  // Blob
+  // Bool
+  func addBool(name:String) -> Void {
+    return addBool(name, index: false, nullable: false)
+  }
+  func addBool(name:String, index:Bool) -> Void {
+    return addBool(name, index: index, nullable: false)
+  }
+  func addBool(name:String, index:Bool, nullable:Bool) -> Void {
+    return addInt(name, length: 1, nullable: nullable, index: index)
+  }
 
+  // Date
+  func addDate(name:String) -> Void {
+    return addDate(name, nullable: false)
+  }
+  func addDate(name:String, nullable:Bool) -> Void {
+    return addText(name, nullable: nullable)
+  }
 
-  func connect(database: String) -> Void {
+  // Add Column
+  func addColumn(column:String) -> Void {
+    guard self.table.characters.count > 0 else { return }
+    guard self.database.characters.count > 0 else { return }
+
+    self.columns.append(column)
+
+    return
+  }
+
+  // Create Table
+  func createTable() -> Bool {
+    if self.columns.size >= 1 {
+      var sql:String = "CREATE TABLE IF NOT EXISTS \(self.table) ("
+
+      for column in self.columns {
+        sql += "\(column),"
+      }
+
+      var index = sql.endIndex.advanceBy(-1)
+      var newSQL = sql.substringToIndex(index)
+
+      return createTable(newSQL)
+    }
+
+    return false
+  }
+  func createTable(sql:String) -> Bool {
+    return execute(sql)
+  }
+
+  // Create Index
+  func addIndex(name:String) -> Void {
+    return addIndex(name, column: name)
+  }
+  func addIndex(name:String, column:String) -> Void {
+    return addIndex(name, column: column)
+  }
+  func addIndex(name:String, column:String, table:String) -> Void {
+    let sql:String = "CREATE INDEX \(name) ON \(table) (\(column));"
+
+    if execute(sql) == false {
+      print("Index Failed")
+    }
+
+    return
+  }
+
+  // Execute
+  func execute(sql:String) -> Bool {
+    // Make sure there is a db set
+    guard self.database.characters.count > 0 else { return false }
+
+    // Errors
+    var errorPointer:COpaquePointer = nil
+    var error:String                = ""
+
+    // Connect
     var dbPointer:COpaquePointer = nil
     var iConnection:Int32
-    iConnection = sqlite3_open(database, &dbPointer)
+    iConnection = sqlite3_open(self.database, &dbPointer)
     if iConnection != 0 {
       print("Error: \(sqlite3_errmsg(dbPointer))")
-    } else {
-      print("Connected")
     }
+
+    // Execute
+    var iExecute:Int32
+    iExecute = sqlite3_exec(dbPointer, sql, setResult, nil, &errorPointer)
+    if iExecute != 0 {
+      print("Error: \(errorPointer)")
+      sqlite3_free(errorPointer)
+      sqlite3_close(dbPointer)
+
+      return false
+    }
+
+    sqlite3_close(dbPointer)
+
+    return true
   }
 }

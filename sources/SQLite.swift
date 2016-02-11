@@ -10,7 +10,7 @@ public class SwiftSQLite {
 
   private var queue:dispatch_queue_t
   private var dbPointer:COpaquePointer  = nil
-  private var dateFormat                = NSDateFormater()
+  private var dateFormat                = NSDateFormatter()
   private var GROUP                     = ""
 
   var columns:[String]        = []
@@ -44,7 +44,7 @@ public class SwiftSQLite {
   }
 
   // Init
-  required init(gid:String) {
+  init(gid:String) {
     assert(Static.instance == nil, "Singleton already init")
 
     GROUP = gid

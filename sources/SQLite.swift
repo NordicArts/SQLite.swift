@@ -239,8 +239,8 @@ extension SwiftSQLite {
 
     // Execute
     var executeStatus:Int32
-    //executeStatus = sqlite3_exec(dbPointer, sql, self.setResult, nil, &errorPointer)
-    executeStatus = sqlite3_exec(dbPointer, sql, nil, nil, &errorPointer)
+    executeStatus = sqlite3_exec(dbPointer, sql, setResult(UnsafeMutablePointer<Void>, argc:UnsafeMutablePointer<Int32>, argv:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>, column:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>), nil, &errorPointer)
+    //executeStatus = sqlite3_exec(dbPointer, sql, nil, nil, &errorPointer)
     if executeStatus != 0 {
       print("Error: \(errorPointer)")
       sqlite3_free(errorPointer)
@@ -277,10 +277,6 @@ extension SwiftSQLite {
   func destroyDatabase() -> Bool {
     return false
   }
-}
-
-func setResult(object:UnsafeMutablePointer<Void>, argc:Int32, argv:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>, column:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>) -> Int32 {
-    return 0
 }
 
 // MARK: ORM

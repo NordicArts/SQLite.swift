@@ -20,4 +20,13 @@ class SwiftSQLite {
   func setTable(table:String) -> Void {
     self.tableName = table
   }
+
+  func stripComma(sql:String) -> String {
+    var newSql = sql
+    
+    let range = newSql.endIndex.advancedBy(-1)..<newSql.endIndex
+    newSql.removeRange(range)
+
+    return newSql
+  }
 }

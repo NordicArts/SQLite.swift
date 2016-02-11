@@ -67,7 +67,7 @@ extension SQLiteSwift {
         
         // Values with value
         for (column, value) in self.values {
-            sql += "\(column) = \(value),"
+            sql += "\(column) = '\(value)',"
         }
 
         // Null Vaues
@@ -76,8 +76,7 @@ extension SQLiteSwift {
         }
 
         // Remove the extra ,
-        let range = sql.endIndex.advancedBy(-1)..<sql.endIndex
-        sql.removeRange(range)
+        sql = stripComma(sql)
 
         // Add a space
         sql += " "
@@ -88,11 +87,11 @@ extension SQLiteSwift {
             for (column, value) in self.wheres {
                 // skip the first one
                 if i == 0 { 
-                    sql += " WHERE \(column) = \(value) "
+                    sql += " WHERE \(column) = '\(value)' "
 
                     i += 1
                 } else {
-                    sql += " AND \(column) = \(value) "
+                    sql += " AND \(column) = '\(value)' "
                 }
             }
         }
@@ -148,11 +147,26 @@ extension SQLiteSwift {
         }
 
         // Strip the extra ,
-        let range = ""
+        sql = stripComma(sql)
 
         // End the columns
-        sql += ") VALUES "
+        sql += ") VALUES ("
         
+        // Add Values
+        for (column, value) in self.values {
+            sql += "'\(value)',"
+        }
+
+        // Add NULL Values
+        for column in self.nullValues {
+            sql += "NULL,"
+        }        
+        
+        // Strip the extra ,
+        sql = stripComma(sql)
+        
+        // Close query
+        sql += ");"
 
         return insert(sql)
     }
@@ -169,7 +183,12 @@ extension SQLiteSwift {
 
     // Delete
     func del() -> Void {
-        return del("")
+        var sql:String = ""
+
+        // NULL Values
+
+
+        return del(sql)
     }
     func del(sql:String) -> Void {
         self.wheres = [:]

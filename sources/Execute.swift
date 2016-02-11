@@ -16,6 +16,9 @@ extension SwiftSQLite {
       print("Error: \(sqlite3_errmsg(dbPointer))")
     }
 
+    // Callback
+    
+
     // Execute
     var iExecute:Int32
     iExecute = sqlite3_exec(dbPointer, sql, setResult, nil, &errorPointer)

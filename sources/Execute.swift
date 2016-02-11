@@ -32,7 +32,7 @@ extension SwiftSQLite {
     return true
   }
 
-  // Result
+  // Set Result
   func setResult(object:UnsafeMutablePointer<Void>, argc:Int32, argv:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>, column:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>) -> Int32 {
     var result:[String:String] = [:]
     /**
@@ -46,5 +46,13 @@ extension SwiftSQLite {
     */
 
     return 0
+  }
+
+  func getResult() -> [String:String] {
+    return self.results
+  }
+
+  func destroyDatabase() -> Bool {
+    return false
   }
 }

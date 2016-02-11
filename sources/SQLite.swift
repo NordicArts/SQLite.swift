@@ -1,6 +1,9 @@
 import Foundation
-import Glibc
 import SQLite
+
+#if os(Linux)
+  import Glibc
+#endif
 
 // MARK: SQLite
 public class SwiftSQLite {

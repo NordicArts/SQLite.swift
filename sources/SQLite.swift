@@ -24,7 +24,6 @@ public class SwiftSQLite {
   // Static
   struct Static {
     static var instance:SwiftSQLite?  = nil
-    static var token:dispatch_once_t  = 0
   }
 
   // Shared Instance
@@ -51,10 +50,6 @@ public class SwiftSQLite {
 
     queue = dispatch_queue_create(queue_label, nil)
     dateFormat.timeZone = NSTimeZone(forSecondsFromGMT: 0)
-  }
-
-  deinit() {
-    closeDatabase()
   }
 
   public func setDb(database:String) -> Void {

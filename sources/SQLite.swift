@@ -1,7 +1,7 @@
 import Foundation
 import SQLite
 
-class SwiftSQLite {
+public class SwiftSQLite {
   var dbName:String = ""
   var tableName:String = ""
 
@@ -13,11 +13,14 @@ class SwiftSQLite {
   var nullWheres:[String] = []
   var wheres:[String:String] = [:]
 
-  func setDb(database:String) -> Void {
+  init() {
+  }
+
+  public func setDb(database:String) -> Void {
     self.dbName = database + ".db"
   }
 
-  func setTable(table:String) -> Void {
+  public func setTable(table:String) -> Void {
     self.tableName = table
   }
 

@@ -235,7 +235,7 @@ extension SwiftSQLite {
 
     // Execute
     var iExecute:Int32
-    iExecute = sqlite3_exec(dbPointer, sql, setResult, nil, &errorPointer)
+    iExecute = sqlite3_exec(dbPointer, sql, self.setResult, nil, &errorPointer)
     if iExecute != 0 {
       print("Error: \(errorPointer)")
       sqlite3_free(errorPointer)
@@ -286,7 +286,7 @@ extension SwiftSQLite {
     
     // Update NULL Values
     func setValue(column:String) -> Void {
-        self.nullValues[column] = ""
+        self.nullValues[] = column
     
         return
     }
@@ -314,7 +314,7 @@ extension SwiftSQLite {
     
     // NULL Where
     func setWhere(column:String) -> Void {
-        self.nullWheres[column] = ""
+        self.nullWheres[] = column
         
         return
     }
@@ -352,7 +352,7 @@ extension SwiftSQLite {
         }
 
         // Null Vaues
-        for value in self.nullValues {
+        for (_, value) in self.nullValues {
             sql += "\(value) = NULL,"
         }
 
@@ -380,17 +380,17 @@ extension SwiftSQLite {
         //NULL Where
         if self.nullWheres.count >= 1 {
             var i = 0
-            for column in self.nullWheres {
+            for (_, value) in self.nullWheres {
                 if i == 0 {
                     if self.wheres.count >= 1 {
-                        sql += " AND \(column)  = NULL " 
+                        sql += " AND \(value)  = NULL " 
                     } else {
-                        sql += " WHERE \(column) = NULL " 
+                        sql += " WHERE \(value) = NULL " 
                     }
 
                     i += 1
                 } else {
-                    sql += " AND \(column) = NULL "
+                    sql += " AND \(value) = NULL "
                 }
             }
         }
@@ -418,13 +418,13 @@ extension SwiftSQLite {
         var sql:String = "INSERT INTO \(self.tableName) ("
 
         // Value Columns
-        for (column, value) in self.values {
+        for (column, _) in self.values {
             sql += "\(column),"
         }
 
         // NULL Value Columns
-        for column in self.nullValues {
-            sql += "\(column),"
+        for (_, value) in self.nullValues {
+            sql += "\(value),"
         }
 
         // Strip the extra ,
@@ -434,12 +434,12 @@ extension SwiftSQLite {
         sql += ") VALUES ("
         
         // Add Values
-        for (column, value) in self.values {
+        for (_, value) in self.values {
             sql += "'\(value)',"
         }
 
         // Add NULL Values
-        for column in self.nullValues {
+        for _ in self.nullValues {
             sql += "NULL,"
         }        
         

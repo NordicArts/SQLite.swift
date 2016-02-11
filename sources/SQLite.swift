@@ -274,8 +274,12 @@ extension SwiftSQLite {
   }
 }
 
+func setResult(object:UnsafeMutablePointer<Void>, argc:Int32, argv:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>, column:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>) -> Int32 {
+    return 0
+}
+
 // MARK: ORM
-extension SQLiteSwift {
+extension SwiftSQLite {
     func setColumn(column:String) -> Void {
         return setValue(column)
     }

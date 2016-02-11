@@ -1,3 +1,6 @@
+import SQLite.swift
+import SQLite
+
 extension SwiftSQLite {
   // Execute
   func execute(sql:String) -> Bool {

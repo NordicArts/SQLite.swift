@@ -63,7 +63,7 @@ extension SQLiteSwift {
     func update() -> Void {
         guard self.values != 0 else { return }
 
-        sql:String = "UPDATE \(self.tableName) SET "
+        var sql:String = "UPDATE \(self.tableName) SET "
         
         // Values with value
         for (column, value) in self.values {

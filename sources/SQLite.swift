@@ -286,7 +286,7 @@ extension SwiftSQLite {
     
     // Update NULL Values
     func setValue(column:String) -> Void {
-        self.nullValues[] = column
+        self.nullValues.append(column)
     
         return
     }
@@ -314,7 +314,7 @@ extension SwiftSQLite {
     
     // NULL Where
     func setWhere(column:String) -> Void {
-        self.nullWheres[] = column
+        self.nullWheres.append(column)
         
         return
     }
@@ -342,7 +342,7 @@ extension SwiftSQLite {
 
     // Update
     func update() -> Void {
-        guard self.values != 0 else { return }
+        guard self.values.count != 0 else { return }
 
         var sql:String = "UPDATE \(self.tableName) SET "
         
@@ -352,7 +352,7 @@ extension SwiftSQLite {
         }
 
         // Null Vaues
-        for (_, value) in self.nullValues {
+        for value in self.nullValues {
             sql += "\(value) = NULL,"
         }
 
@@ -380,7 +380,7 @@ extension SwiftSQLite {
         //NULL Where
         if self.nullWheres.count >= 1 {
             var i = 0
-            for (_, value) in self.nullWheres {
+            for value in self.nullWheres {
                 if i == 0 {
                     if self.wheres.count >= 1 {
                         sql += " AND \(value)  = NULL " 
@@ -423,7 +423,7 @@ extension SwiftSQLite {
         }
 
         // NULL Value Columns
-        for (_, value) in self.nullValues {
+        for value in self.nullValues {
             sql += "\(value),"
         }
 

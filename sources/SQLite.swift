@@ -234,9 +234,10 @@ extension SwiftSQLite {
     
 
     // Execute
-    var iExecute:Int32
-    iExecute = sqlite3_exec(dbPointer, sql, self.setResult, nil, &errorPointer)
-    if iExecute != 0 {
+    var executeStatus:Int32
+    //executeStatus = sqlite3_exec(dbPointer, sql, self.setResult, nil, &errorPointer)
+    executeStatus = sqlite3_exec(dbPointer, sql, nil, nil, &errorPointer)
+    if executeStatus != 0 {
       print("Error: \(errorPointer)")
       sqlite3_free(errorPointer)
       sqlite3_close(dbPointer)

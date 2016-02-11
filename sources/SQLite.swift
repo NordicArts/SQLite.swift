@@ -2,19 +2,59 @@ import Foundation
 import Glibc
 import SQLite
 
+// MARK: SQLite
 public class SwiftSQLite {
-  var dbName:String = ""
-  var tableName:String = ""
+  var tableName:String  = ""
+  var dbName:String     = "SwiftSQLite.db"
+  var queue_label       = "SwiftSQLite"
 
-  var columns:[String] = []
+  private var queue:dispatch_queue_t
+  private var dbPointer:COpaquePointer  = nil
+  private var dateFormat                = NSDateFormater()
+  private var GROUP                     = ""
+
+  var columns:[String]        = []
   var results:[String:String] = [:]
 
-  var nullValues:[String] = []
-  var values:[String:String] = [:]
-  var nullWheres:[String] = []
-  var wheres:[String:String] = [:]
+  var nullValues:[String]     = []
+  var values:[String:String]  = [:]
+  var nullWheres:[String]     = []
+  var wheres:[String:String]  = [:]
 
-  init() {
+  // Static
+  struct Static {
+    static var instance:SwiftSQLite?  = nil
+    static var token:dispatch_once_t  = 0
+  }
+
+  // Shared Instance
+  class func sharedInstance() -> SwiftSQLite! {
+    dispatch_once(&Static.token) {
+      Static.instance = self.init(gid: "")
+    }
+
+    return Static.instance!
+  }
+  class func sharedInstance(gid:String) -> SwiftSQLite! {
+    dispatch_once(&Static.token) {
+      Static.instance = self.init(gid: gid)
+    }
+
+    return Static.instance!
+  }
+
+  // Init
+  required init(gid:String) {
+    assert(Static.instance == nil, "Singleton already init")
+
+    GROUP = gid
+
+    queue = dispatch_queue_create(queue_label, nil)
+    dateFormat.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+  }
+
+  deinit() {
+    closeDatabase()
   }
 
   public func setDb(database:String) -> Void {
@@ -27,7 +67,7 @@ public class SwiftSQLite {
 
   func stripComma(sql:String) -> String {
     var newSql = sql
-    
+
     let range = newSql.endIndex.advancedBy(-1)..<newSql.endIndex
     newSql.removeRange(range)
 
@@ -235,7 +275,7 @@ extension SwiftSQLite {
     }
 
     // Callback
-    
+
 
     // Execute
     var executeStatus:Int32
@@ -255,7 +295,7 @@ extension SwiftSQLite {
   }
 
   // Set Result
-  func setResult(object:UnsafeMutablePointer<Void>, argc:Int32, argv:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>, column:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>) -> Int32 {
+  func setResult(object:UnsafeMutablePointer<Void>, argc:UnsafeMutablePointer<Int32>, argv:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>, column:UnsafeMutablePointer<UnsafeMutablePointer<Int8>>) -> Int32 {
     var result:[String:String] = [:]
     /**
     for index in 0...(argv.count - 1) {
@@ -277,6 +317,10 @@ extension SwiftSQLite {
   func destroyDatabase() -> Bool {
     return false
   }
+
+  private func closeDatabase() {
+
+  }
 }
 
 // MARK: ORM
@@ -284,11 +328,11 @@ extension SwiftSQLite {
     func setColumn(column:String) -> Void {
         return setValue(column)
     }
-    
+
     // Update NULL Values
     func setValue(column:String) -> Void {
         self.nullValues.append(column)
-    
+
         return
     }
 
@@ -309,17 +353,17 @@ extension SwiftSQLite {
     }
     func setValue(column:String, value:String) -> Void {
         self.values[column] = value
-        
+
         return
     }
-    
+
     // NULL Where
     func setWhere(column:String) -> Void {
         self.nullWheres.append(column)
-        
+
         return
     }
-    
+
     // Wheres
     func setWhere(column:String, value:Int) -> Void {
         return setWhere(column, value: "\(value)")
@@ -337,7 +381,7 @@ extension SwiftSQLite {
     }
     func setWhere(column:String, value:String) -> Void {
         self.wheres[column] = value
-    
+
         return
     }
 
@@ -346,7 +390,7 @@ extension SwiftSQLite {
         guard self.values.count != 0 else { return }
 
         var sql:String = "UPDATE \(self.tableName) SET "
-        
+
         // Values with value
         for (column, value) in self.values {
             sql += "\(column) = '\(value)',"
@@ -368,7 +412,7 @@ extension SwiftSQLite {
             var i = 0
             for (column, value) in self.wheres {
                 // skip the first one
-                if i == 0 { 
+                if i == 0 {
                     sql += " WHERE \(column) = '\(value)' "
 
                     i += 1
@@ -384,9 +428,9 @@ extension SwiftSQLite {
             for value in self.nullWheres {
                 if i == 0 {
                     if self.wheres.count >= 1 {
-                        sql += " AND \(value)  = NULL " 
+                        sql += " AND \(value)  = NULL "
                     } else {
-                        sql += " WHERE \(value) = NULL " 
+                        sql += " WHERE \(value) = NULL "
                     }
 
                     i += 1
@@ -398,7 +442,7 @@ extension SwiftSQLite {
 
         // Close query
         sql += ";"
-        
+
         return update(sql)
     }
     func update(sql:String) -> Void {
@@ -433,7 +477,7 @@ extension SwiftSQLite {
 
         // End the columns
         sql += ") VALUES ("
-        
+
         // Add Values
         for (_, value) in self.values {
             sql += "'\(value)',"
@@ -442,11 +486,11 @@ extension SwiftSQLite {
         // Add NULL Values
         for _ in self.nullValues {
             sql += "NULL,"
-        }        
-        
+        }
+
         // Strip the extra ,
         sql = stripComma(sql)
-        
+
         // Close query
         sql += ");"
 
@@ -479,13 +523,13 @@ extension SwiftSQLite {
         self.nullWheres = []
 
         execute(sql)
-        
+
         return
     }
 
     // Select all from table
     func selectAllFromTable(table:String) -> Void {
-       return select("SELECT * FROM \(table)") 
+       return select("SELECT * FROM \(table)")
     }
 
     // Select
@@ -499,7 +543,7 @@ extension SwiftSQLite {
         self.nullValues = []
 
         execute(sql)
-        
+
         return
     }
 }

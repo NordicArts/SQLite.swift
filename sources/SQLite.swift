@@ -1,4 +1,5 @@
 import Foundation
+import Glibc
 import SQLite
 
 public class SwiftSQLite {

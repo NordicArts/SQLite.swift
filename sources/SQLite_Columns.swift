@@ -1,3 +1,7 @@
+import Foundation
+
+import SQLite
+
 extension SwiftSQLite {
   // Int columns
   func addPrimary(name:String) -> Void {
@@ -129,5 +133,116 @@ extension SwiftSQLite {
     self.columns.append(column)
 
     return
+  }
+
+  // Types of column
+  func getColumnType(index:CInt, statement:COpaquePointer) -> CInt {
+    var type:CInt = 0
+
+    let blobTypes = ["Binary", "BLOB", "VARBINARY"]
+    let charTypes = ["CHAR", "CHARACTER", "CLOB", "NATIONAL VARYING CHARACTER", "NATIVE CHARACTER", "NCHAR", "NVARCHAR", "TEXT", "VARCHAR", "VARIANT", "VARYING CHARACTER"]
+    let dateTypes = ["DATE", "DATETIME", "TIME", "TIMESTAMP"]
+    let intTypes  = ["BIGINT", "BIT", "BOOL", "BOOLEAN", "INT", "INT2", "INT8", "INTEGER", "MEDIUMINT", "SMALLIHT", "TINYINT"]
+    let nullTypes = ["NULL"]
+    let realTypes = ["DECIMAL", "DOUBLE", "DOUBLE PRECISION", "FLOAT", "NUMERIC", "REAL"]
+
+    let buffer = sqlite3_column_decltype(statement, index)
+    if buffer != nil {
+      let temp = String.fromCString(buffer)!.uppercaseString
+
+      // remove parenthesis
+      let preParent = temp
+      preParent.rangeOfString("(")!.startIndex
+      print(preParent)
+
+      //let preParent = temp[temp.startIndex..<find(temp, "(")!]
+
+      // Integer
+      if intTypes.contains(preParent) {
+        return SQLITE_INTEGER
+      }
+
+      // Real
+      if realTypes.contains(preParent) {
+        return SQLITE_FLOAT
+      }
+
+      // Char
+      if charTypes.contains(preParent) {
+        return SQLITE_TEXT
+      }
+
+      // Blob
+      if blobTypes.contains(preParent) {
+        return SQLITE_BLOB
+      }
+
+      // NULL
+      if nullTypes.contains(preParent) {
+        return SQLITE_NULL
+      }
+
+      // Date
+      if dateTypes.contains(preParent) {
+        return SQLITE_DATE
+      }
+
+      // Text
+      return SQLITE_TEXT
+    } else {
+      type = sqlite3_column_type(statement, index)
+    }
+
+    return type
+  }
+
+  // Column Values
+  func getColumnValue(index:CInt, type:CInt, statement:COpaquePointer) -> AnyObject? {
+    // Integer
+    if type == SQLITE_INTEGER {
+      return Int(sqlite3_column_int(statement, index)) as? AnyObject
+    }
+
+    // Float
+    if type == SQLITE_FLOAT {
+      return Double(sqlite3_column_double(statement, index)) as? AnyObject
+    }
+
+    // Blob
+    if type == SQLITE_BLOB {
+      let data = sqlite3_column_blob(statement, index)
+      let size = sqlite3_column_bytes(statement, index)
+      return NSData(bytes: data, length: Int(size))
+    }
+
+    // NULL
+    if type == SQLITE_NULL {
+      return nil
+    }
+
+    // Date
+    if type == SQLITE_DATE {
+      let text = UnsafePointer<Int8>(sqlite3_column_text(statement, index))
+      if text != nil {
+        if let buffer = String.fromCString(text) {
+          let dateFormatter = NSDateFormatter()
+          dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+          let value = dateFormatter.dateFromString(buffer)
+
+          return value
+        }
+      }
+
+      let value     = sqlite3_column_double(statement, index)
+      let dateTime  = NSDate(timeIntervalSince1970: value)
+
+      return dateTime
+    }
+
+    // String
+    let buffer  = UnsafePointer<Int8>(sqlite3_column_text(statement, index))
+    let value   = String.fromCString(buffer)
+
+    return value as? AnyObject
   }
 }

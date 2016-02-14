@@ -17,7 +17,7 @@ public class SwiftSQLite {
   public var dbPointer:COpaquePointer       = nil
   public var dateFormat                     = NSDateFormatter()
   public var GROUP                          = ""
-  public var queue                          = "SQliteSwift"
+  public var queue                          = "SwiftSQLite"
   public var queuePointer:dispatch_queue_t
 
   var columns:[String]        = []
@@ -62,7 +62,7 @@ public class SwiftSQLite {
 // MARK: Create
 extension SwiftSQLite {
   // Create Table
-  func createTable() -> Bool {
+  func createTable() -> Void {
     if self.columns.count >= 1 {
       var sql:String = "CREATE TABLE IF NOT EXISTS \(self.tableName) ("
 
@@ -79,11 +79,9 @@ extension SwiftSQLite {
 
       return createTable(sql)
     }
-
-    return false
   }
-  func createTable(sql:String) -> Bool {
-    return execute(sql)
+  func createTable(sql:String) -> Void {
+    execute(sql)
   }
 
   // Create Index
@@ -96,10 +94,6 @@ extension SwiftSQLite {
   func addIndex(name:String, column:String, table:String) -> Void {
     let sql:String = "CREATE INDEX \(name) ON \(table) (\(column));"
 
-    if execute(sql) == false {
-      print("Index Failed")
-    }
-
-    return
+    execute(sql)
   }
 }
